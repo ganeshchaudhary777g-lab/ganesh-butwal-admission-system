@@ -6,12 +6,11 @@ RUN dotnet publish AdmissionWeb.csproj -c Release -o /app/publish /p:UseAppHost=
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
-RUN groupadd --system app && useradd --system --gid app --home-dir /app app \
-    && mkdir -p /app/App_Data && chown -R app:app /app
-COPY --from=build --chown=app:app /app/publish ./
+COPY --from=build /app/publish ./
+RUN mkdir -p /app/App_Data && chown -R $APP_UID:$APP_UID /app/App_Data
 ENV ASPNETCORE_URLS=http://+:10000 \
     ASPNETCORE_FORWARDEDHEADERS_ENABLED=true \
     ASPNETCORE_HTTP_PORTS=10000
 EXPOSE 10000
-USER app
+USER $APP_UID
 ENTRYPOINT ["dotnet", "AdmissionWeb.dll"]
